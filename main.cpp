@@ -1,3 +1,53 @@
+/*
+marcaVisitados: Esta função realiza uma DFS (Depth-First Search) para marcar todos os vértices acessíveis a partir de um vértice inicial como visitados. Ela é usada para verificar a conectividade do grafo, ajudando a determinar se todos os vértices podem ser alcançados a partir de um ponto específico.
+
+conexoNaoDir: Esta função verifica se um grafo não direcionado é conexo, ou seja, se há um caminho entre qualquer par de vértices. Para isso, utiliza a função marcaVisitados para marcar os vértices alcançáveis a partir do vértice 0 e, em seguida, verifica se todos os vértices foram visitados.
+
+bipartido: A função determina se o grafo é bipartido, ou seja, se os vértices podem ser divididos em dois conjuntos disjuntos tal que não haja arestas entre vértices do mesmo conjunto. Ela utiliza uma BFS (Breadth-First Search) para tentar colorir o grafo com duas cores, verificando a validade da coloração.
+
+euleriano: Esta função verifica se um grafo não direcionado é euleriano, o que significa que existe um ciclo que visita todas as arestas exatamente uma vez. Para isso, verifica se o grafo é conexo e se todos os vértices têm grau par.
+
+bfs_ciclo: A função realiza uma BFS para detectar ciclos em um grafo não direcionado. Durante a BFS, se encontrar um vértice que já foi visitado e que não seja o pai do vértice atual, detecta-se a presença de um ciclo.
+
+ciclo: Esta função verifica a presença de ciclos em todo o grafo, utilizando a função bfs_ciclo para cada componente conexo do grafo. Ela retorna true se algum ciclo for encontrado.
+
+compConexo: A função calcula o número de componentes conexos em um grafo não direcionado. Ela utiliza a DFS para percorrer cada componente não visitado, incrementando um contador de componentes conexos.
+
+compFortementeConexo: A função determina o número de componentes fortemente conexos em um grafo direcionado. Ela primeiro inverte as arestas do grafo, ordena os vértices pela ordem de término da DFS, e então realiza uma segunda DFS no grafo invertido.
+
+marcaTempos: Esta função realiza uma DFS e registra os tempos de entrada e saída de cada vértice, que são usados para diversas análises em grafos, como a detecção de componentes fortemente conexos.
+
+ordenaPar: Esta função auxilia na ordenação de pares de inteiros. Ela é usada para ordenar vértices com base em seus tempos de saída na DFS, uma operação necessária para a identificação de componentes fortemente conexos.
+
+artiucladosDFS: A função auxilia na identificação de pontos de articulação em um grafo. Pontos de articulação são vértices cuja remoção aumenta o número de componentes conexos do grafo. A função realiza uma DFS modificada para calcular os valores de low e discovery e determinar os pontos de articulação.
+
+articulados: Esta função identifica todos os pontos de articulação em um grafo, utilizando a função artiucladosDFS para realizar a DFS a partir de cada vértice. Ela retorna uma lista contendo todos os pontos de articulação encontrados.
+
+dfsPontes: A função realiza uma DFS para detectar pontes em um grafo. Uma ponte é uma aresta cuja remoção aumenta o número de componentes conexos do grafo. A função atualiza os valores de low e tempoEntrada para identificar essas arestas críticas.
+
+pontes: Esta função encontra todas as pontes em um grafo, utilizando a função dfsPontes para percorrer cada componente do grafo. Ela retorna o número total de pontes encontradas.
+
+final: A função verifica se todos os vizinhos de um determinado vértice foram visitados durante a execução de uma DFS. É usada para controlar a continuidade da busca.
+
+dfs: Esta função realiza uma DFS no grafo, retornando uma lista de arestas percorridas. Ela serve como uma implementação básica de DFS, útil para percorrer o grafo e coletar informações sobre as arestas.
+
+bfs: A função realiza uma BFS no grafo, retornando uma lista de arestas percorridas. Semelhante à dfs, mas utiliza uma busca em largura para explorar o grafo.
+
+prim: Esta função implementa o algoritmo de Prim para encontrar a árvore geradora mínima (MST) de um grafo ponderado. Ela usa uma fila de prioridade para selecionar as arestas de menor peso que conectam novos vértices à árvore em construção.
+
+dfsPontes: Esta função executa uma DFS (Depth-First Search) para detectar pontes em um grafo. Uma ponte é uma aresta cuja remoção aumenta o número de componentes conectados do grafo. A função utiliza dois vetores, menorTempo e tempoEntrada, para acompanhar o menor tempo de visitação e o tempo de entrada de cada vértice durante a DFS. Se o menor tempo de visitação do vizinho for maior que o tempo de entrada do vértice atual, a aresta é uma ponte. O número total de pontes é incrementado durante o processo.
+
+pontes: A função pontes invoca a função dfsPontes para cada vértice do grafo e contabiliza o número total de pontes. Inicialmente, ela cria vetores de controle para marcar os vértices visitados, armazenar o menor tempo de visitação e o tempo de entrada de cada vértice. Ao final, ela retorna o número total de pontes detectadas no grafo, que é útil para análises de conectividade e robustez do grafo.
+
+djikstra: Esta função implementa o algoritmo de Dijkstra para encontrar o caminho mais curto de um vértice de origem a todos os outros vértices em um grafo ponderado. Utiliza uma fila de prioridade para selecionar o vértice com a menor distância acumulada e, em seguida, atualiza as distâncias dos vértices adjacentes. O algoritmo continua até que todos os vértices tenham sido processados, garantindo que a menor distância de cada vértice ao ponto de origem seja calculada.
+
+fechoTrans: A função fechoTrans calcula o fecho transitivo de um grafo, especificamente para o vértice 0. O fecho transitivo de um vértice é o conjunto de todos os vértices que podem ser alcançados a partir dele. A função utiliza uma DFS para explorar todos os caminhos possíveis a partir do vértice 0 e retorna uma lista dos vértices que fazem parte desse fecho.
+
+ordemTopologica: Esta função realiza a ordenação topológica de um grafo direcionado acíclico (DAG). Utiliza uma DFS para visitar os vértices e empilhá-los na ordem inversa de seus tempos de saída. A ordenação resultante garante que, para cada aresta u → v, o vértice u apareça antes do vértice v na lista final, o que é essencial em muitos algoritmos de ordenação e programação.
+
+fluxoMaximo: Implementa o algoritmo de Ford-Fulkerson para calcular o fluxo máximo em um grafo de fluxo. O fluxo máximo é a maior quantidade de fluxo que pode ser enviado de uma fonte a um destino em uma rede. A função utiliza uma BFS para encontrar caminhos aumentadores no grafo residual e ajusta as capacidades das arestas até que nenhum caminho aumentador possa ser encontrado. O resultado final é o valor do fluxo máximo que pode ser alcançado.
+*/
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
