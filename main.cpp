@@ -4,6 +4,7 @@
 #include <queue>
 #include <limits.h>
 #include <sstream>
+#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -27,11 +28,12 @@ int pontes(vector<vector<pair<int, pair<int, int>>>>& listaAdj);
 int prim(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVertices, int& pesoTotal);
 vector<int> ordenacao_topologica(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVertices);
 int fluxoMaximo(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVertices);
-void marcaVisitadosFecho(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int vertice, vector<bool>& visitados);
+
 
 #define BRANCO 0 //Ainda não visitado
 #define PRETO 1  //Pintado de preto
 #define CINZA 2 //Pintado de vermelho
+#define INF numeric_limits<int>::max()
 int tempo;
 
 void marcaVisitados(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int vertice, vector<bool>& visitados){
@@ -85,7 +87,7 @@ bool bipartido(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVerti
 }
 
 bool euleriano (vector<vector<pair<int, pair<int, int>>>>& listaAdj, int numVertice){
-    
+
     if(!conexoNaoDir(listaAdj, numVertice)) return false;    
 
     for(auto& relacoes : listaAdj){
@@ -174,7 +176,7 @@ int compFortementeConexo(vector<vector<pair<int, pair<int, int>>>> listaAdj, int
     out = marcaTempos(listaAdj, qtdVertices);
     vector<pair<int,int>> outv(qtdVertices);
     sort(outv.begin(),outv.end(),ordenaPar);
-    
+
     vector<int> cor(qtdVertices, BRANCO);
 
     for(int i = 0; i < qtdVertices; i++){
@@ -244,7 +246,7 @@ bool ordenaPar(pair<int,int> a,pair<int,int> b){
        return a.second>b.second;
 }
 
-void artiucladosDFS(int u, vector<vector<pair<int, pair<int, int>>>>& adj, vector<int> discovery, vector<int> low, vector<int> parent, vector<bool>& articulation, vector<int> cor) {
+void artiucladosDFS(int u, vector<vector<pair<int, pair<int, int>>>>& adj, int* discovery, int* low, int* parent, vector<bool>& articulation, int* cor) {
     cor[u] = CINZA;
     discovery[u] = low[u] = ++tempo;
     int filhos = 0;
@@ -278,11 +280,10 @@ void artiucladosDFS(int u, vector<vector<pair<int, pair<int, int>>>>& adj, vecto
 }
 
 vector<int> articulados(vector<vector<pair<int, pair<int, int>>>>& adj, int qtdVertices) {
-    vector<int> discovery(qtdVertices);
-    vector<int> low(qtdVertices);
-    vector<int> parent(qtdVertices);
-    vector<int> cor(qtdVertices);
-
+    int* discovery = new int[qtdVertices];
+    int* low = new int[qtdVertices];
+    int* parent = new int[qtdVertices];
+    int* cor = new int[qtdVertices];
     vector<bool> articulation(qtdVertices, false);
     tempo = 0;
 
@@ -303,6 +304,12 @@ vector<int> articulados(vector<vector<pair<int, pair<int, int>>>>& adj, int qtdV
             pontosDeArticulacao.push_back(i);
         }
     }
+
+    // Liberar memória
+    delete[] discovery;
+    delete[] low;
+    delete[] parent;
+    delete[] cor;
 
     return pontosDeArticulacao;
 }
@@ -447,7 +454,7 @@ int prim(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVertices, i
         vertice = pai_vertice;
     }
     return soma_pesos;
-    
+
 };
 
 vector<int> ordenacao_topologica(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVertices) {
@@ -574,12 +581,13 @@ int fluxoMaximo(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVert
 
 
 void marcaVisitadosFecho(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int vertice, vector<bool>& visitados){
+    visitados[vertice] = true;
+
     for (auto& elemento : listaAdj[vertice])
     {
         int vizinho = elemento.second.first;
         if (!visitados[vizinho])
         {
-            visitados[vizinho] = true;
             marcaVisitadosFecho(listaAdj, vizinho, visitados);
         }
     }
@@ -588,14 +596,21 @@ void marcaVisitadosFecho(vector<vector<pair<int, pair<int, int>>>>& listaAdj, in
 vector <int> fechoTrans(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVertices){
     vector<bool> visitadosBool(qtdVertices, false);
     vector<int> fecho;
+    for (auto& relacao : listaAdj[0])
+    {
+        int verticeVizinho = relacao.second.first;
+        marcaVisitadosFecho(listaAdj, verticeVizinho, visitadosBool);
+    }
 
-    marcaVisitadosFecho(listaAdj, 0, visitadosBool);
     for (size_t i = 0; i < visitadosBool.size(); i++)
     {
         if(visitadosBool[i] == true) fecho.push_back(i);
     }
+
+    sort(fecho.begin(), fecho.end());
     return fecho;
 }
+
 
 int main(){
     queue<int> questoes;
@@ -608,13 +623,16 @@ int main(){
     {
         questoes.push(numero);
     }
-    
+
+
     int qtdVertices, qtdArestas;
     string tipoGrafo;
     cin >> qtdVertices >> qtdArestas >> tipoGrafo;
 
     // Inicialize lista_adj com o número de vértices
     vector<vector<pair<int, pair<int, int>>>> lista_adj(qtdVertices);
+
+
 
     for(int i = 0; i < qtdArestas; i++){
         int id, origem, destino, peso;
@@ -647,13 +665,13 @@ int main(){
             case 2:
                 //3 -Verificar se um grafo qualquer é Euleriano.   
                 teste = euleriano(lista_adj, qtdVertices);
-                cout  <<teste << endl;
+                cout << teste << endl;
                 break;
 
             case 3:
                 //4 -Verificar se um grafo possui ciclo.
                 cicloVar = ciclo(lista_adj, qtdVertices);
-                cout <<cicloVar<<endl;
+                cout<<cicloVar<<endl;
                 break;
 
             case 4:
@@ -664,7 +682,7 @@ int main(){
                     cout << qtdComp << endl;
                 }else cout << -1 << endl;   
                 break;
-            
+
             case 5:
                 //6 -Calcular a quantidade de componentes fortemente conexas em um grafo orientado.
                 if (tipoGrafo == "direcionado")
@@ -673,7 +691,7 @@ int main(){
                     cout << qtdCompConex << endl;
                 }else cout << -1 << endl;                            
                 break;
-            
+
             case 6:
                 //7 -Imprimir os vértices de articulação de um grafo não-orientado (priorizar a ordem lexicográfica dos vértices).    
                 qtdArticulado = articulados(lista_adj, qtdVertices);
@@ -688,9 +706,9 @@ int main(){
                     cout << endl;
                     }else cout << 0 << endl;
                 }else cout << -1 << endl;   
-                
+
                 break;
-                
+
             case 7:            
                 //8 -Calcular quantas arestas ponte possui um grafo não-orientado.  
                 if (tipoGrafo != "direcionado")
@@ -698,7 +716,7 @@ int main(){
                     qtdPontes = pontes(lista_adj);  
                     cout << qtdPontes << endl;
                 }else cout << -1 << endl;   
-                
+
                 break;
 
             case 8:
@@ -719,18 +737,18 @@ int main(){
                 cout<<endl;
                 break;
 
-            case 10:                
+            case 10:
                 //11 -Calcular o valor final de uma árvore geradora mínima (para grafos não-orientados).
-                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << -1 << endl;
+                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << "-1" << endl;
                 else{
                     int pesoTotal = 0;
                     prim(lista_adj, qtdVertices, pesoTotal);
                     cout << pesoTotal << endl; 
                 }    
                 break;
-            
+
             case 11:
-                //12 -Imprimir a ordem os vértices em uma ordenação topológica. Esta função não fica disponível em grafos não direcionado. Deve-se priorizar a ordem lexicográfica dos vértices.                 
+                //12 -Imprimir a ordem os vértices em uma ordenação topológica. Esta função não fica disponível em grafos não direcionado. Deve-se priorizar a ordem lexicográfica dos vértices.   
                 if (tipoGrafo == "nao_direcionado")
                 {
                     cout << -1 << endl;
@@ -745,7 +763,7 @@ int main(){
 
             case 12:
                 //13 -Valor do caminho mínimo entre dois vértices (para grafos não-orientados com pelo menos um peso diferente nas arestas).  0 é a origem; n-1 é o destino.   
-                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << -1 << endl;
+                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << "-1" << endl;
                 else{  
                     int caminhoMin = djikstra(lista_adj, qtdVertices);
                     cout << caminhoMin << endl; 
