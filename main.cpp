@@ -26,6 +26,7 @@ void marcaVisitados(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int ver
 int pontes(vector<vector<pair<int, pair<int, int>>>>& listaAdj);
 int prim(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVertices, int& pesoTotal);
 vector<int> ordenacao_topologica(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVertices);
+int fluxoMaximo(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVertices);
 
 #define BRANCO 0 //Ainda não visitado
 #define PRETO 1  //Pintado de preto
@@ -509,8 +510,75 @@ int djikstra(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVertice
 }
 
 //14 - COLOCAR
+int fluxoMaximo(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVertices) {
+    // Inicializa a matriz de fluxo
+    vector<vector<int>> fluxo(qtdVertices, vector<int>(qtdVertices, 0));
+    int fluxo_maximo = 0;
+
+    vector<int> pai(qtdVertices); // Vetor para armazenar o caminho
+
+    // Enquanto houver caminho aumentador
+    while (true) {
+        vector<int> cor(qtdVertices, BRANCO);
+        queue<int> fila;
+        fila.push(0); // Fonte
+        cor[0] = CINZA;
+
+        bool caminhoEncontrado = false;
+
+        while (!fila.empty() && !caminhoEncontrado) {
+            int u = fila.front();
+            fila.pop();
+
+            for (auto vizinho : lista_adj[u]) {
+                int v = vizinho.second.first;
+                int capacidadeResidual = vizinho.second.second - fluxo[u][v]; // Capacidade - fluxo
+
+                if (cor[v] == BRANCO && capacidadeResidual > 0) {
+                    cor[v] = CINZA;
+                    pai[v] = u;
+                    if (v == qtdVertices - 1) {
+                        caminhoEncontrado = true; // Caminho aumentador encontrado
+                        break;
+                    }
+                    fila.push(v);
+                }
+            }
+            cor[u] = PRETO;
+        }
+
+        if (!caminhoEncontrado) break; // Nenhum caminho aumentador encontrado
+
+        // Encontra a capacidade mínima no caminho
+        int gargalo = numeric_limits<int>::max();
+        for (int v = qtdVertices - 1; v != 0; v = pai[v]) {
+            int u = pai[v];
+            int capacidadeResidual = 0;
+            for (const auto& aresta : lista_adj[u]) {
+                if (aresta.second.first == v) {
+                    capacidadeResidual = aresta.second.second - fluxo[u][v];
+                    break;
+                }
+            }
+            gargalo = min(gargalo, capacidadeResidual);
+        }
+
+        // Atualiza o fluxo para as arestas do caminho
+        for (int v = qtdVertices - 1; v != 0; v = pai[v]) {
+            int u = pai[v];
+            fluxo[u][v] += gargalo; // Aumenta o fluxo na aresta direta
+            fluxo[v][u] -= gargalo; // Ajusta o fluxo na aresta reversa
+        }
+
+        fluxo_maximo += gargalo; // Adiciona o fluxo do caminho aumentador ao fluxo total
+    }
+
+    return fluxo_maximo; // Retorna o fluxo máximo encontrado
+}
+
 
 void marcaVisitadosFecho(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int vertice, vector<bool>& visitados){
+    if(vertice!=0)visitados[vertice] = true;
     for (auto& elemento : listaAdj[vertice])
     {
         int vizinho = elemento.second.first;
@@ -530,8 +598,6 @@ vector <int> fechoTrans(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int
     {
         if(visitadosBool[i] == true) fecho.push_back(i);
     }
-
-    sort(fecho.begin(), fecho.end());
     return fecho;
 }
 
@@ -546,7 +612,6 @@ int main(){
     {
         questoes.push(numero);
     }
-
     
     int qtdVertices, qtdArestas;
     string tipoGrafo;
@@ -554,8 +619,6 @@ int main(){
 
     // Inicialize lista_adj com o número de vértices
     vector<vector<pair<int, pair<int, int>>>> lista_adj(qtdVertices);
-
-    
 
     for(int i = 0; i < qtdArestas; i++){
         int id, origem, destino, peso;
@@ -588,13 +651,13 @@ int main(){
             case 2:
                 //3 -Verificar se um grafo qualquer é Euleriano.   
                 teste = euleriano(lista_adj, qtdVertices);
-                cout << teste << endl;
+                cout  <<teste << endl;
                 break;
 
             case 3:
                 //4 -Verificar se um grafo possui ciclo.
                 cicloVar = ciclo(lista_adj, qtdVertices);
-                cout<<cicloVar<<endl;
+                cout <<cicloVar<<endl;
                 break;
 
             case 4:
@@ -660,9 +723,9 @@ int main(){
                 cout<<endl;
                 break;
 
-            case 10:
+            case 10:                
                 //11 -Calcular o valor final de uma árvore geradora mínima (para grafos não-orientados).
-                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << "11- -1" << endl;
+                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << -1 << endl;
                 else{
                     int pesoTotal = 0;
                     prim(lista_adj, qtdVertices, pesoTotal);
@@ -671,7 +734,7 @@ int main(){
                 break;
             
             case 11:
-                //12 -Imprimir a ordem os vértices em uma ordenação topológica. Esta função não fica disponível em grafos não direcionado. Deve-se priorizar a ordem lexicográfica dos vértices.   
+                //12 -Imprimir a ordem os vértices em uma ordenação topológica. Esta função não fica disponível em grafos não direcionado. Deve-se priorizar a ordem lexicográfica dos vértices.                 
                 if (tipoGrafo == "nao_direcionado")
                 {
                     cout << -1 << endl;
@@ -686,7 +749,7 @@ int main(){
 
             case 12:
                 //13 -Valor do caminho mínimo entre dois vértices (para grafos não-orientados com pelo menos um peso diferente nas arestas).  0 é a origem; n-1 é o destino.   
-                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << "13- -1" << endl;
+                if(!conexoNaoDir(lista_adj, qtdVertices) or tipoGrafo == "direcionado")cout << -1 << endl;
                 else{  
                     int caminhoMin = djikstra(lista_adj, qtdVertices);
                     cout << caminhoMin << endl; 
@@ -695,7 +758,10 @@ int main(){
 
             case 13: 
                 //14 -Valor do fluxo máximo para grafos direcionados. 0 é a origem; n-1 é o destino.   
-                cout << "13 buceta" << endl;
+                if (tipoGrafo == "direcionado")
+                {
+                    cout << fluxoMaximo(lista_adj,qtdVertices) << endl;
+                }else cout << -1 << endl; 
                 break;
 
             case 14:
