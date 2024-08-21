@@ -34,7 +34,6 @@ int fluxoMaximo(vector<vector<pair<int, pair<int, int>>>> lista_adj, int qtdVert
 #define PRETO 1  //Pintado de preto
 #define CINZA 2 //Pintado de vermelho
 #define INF numeric_limits<int>::max()
-int tempo;
 
 void marcaVisitados(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int vertice, vector<bool>& visitados){
     visitados[vertice] = true;
@@ -246,7 +245,7 @@ bool ordenaPar(pair<int,int> a,pair<int,int> b){
        return a.second>b.second;
 }
 
-void artiucladosDFS(int u, vector<vector<pair<int, pair<int, int>>>>& adj, int* discovery, int* low, int* parent, vector<bool>& articulation, int* cor) {
+void artiucladosDFS(int u, vector<vector<pair<int, pair<int, int>>>>& adj, int* discovery, int* low, int* parent, vector<bool>& articulation, int* cor, int tempo) {
     cor[u] = CINZA;
     discovery[u] = low[u] = ++tempo;
     int filhos = 0;
@@ -257,7 +256,7 @@ void artiucladosDFS(int u, vector<vector<pair<int, pair<int, int>>>>& adj, int* 
         if (cor[v] == BRANCO) { // v ainda não foi visitado
             filhos++;
             parent[v] = u;
-            artiucladosDFS(v, adj, discovery, low, parent, articulation, cor);
+            artiucladosDFS(v, adj, discovery, low, parent, articulation, cor, tempo);
 
             // Verifica se a subárvore de v pode se conectar a um ancestral de u
             low[u] = min(low[u], low[v]);
@@ -285,7 +284,7 @@ vector<int> articulados(vector<vector<pair<int, pair<int, int>>>>& adj, int qtdV
     int* parent = new int[qtdVertices];
     int* cor = new int[qtdVertices];
     vector<bool> articulation(qtdVertices, false);
-    tempo = 0;
+    int tempo = 0;
 
     for (int i = 0; i < qtdVertices; i++) {
         cor[i] = BRANCO;
@@ -294,7 +293,7 @@ vector<int> articulados(vector<vector<pair<int, pair<int, int>>>>& adj, int qtdV
 
     for (int u = 0; u < qtdVertices; u++) {
         if (cor[u] == BRANCO) {
-            artiucladosDFS(u, adj, discovery, low, parent, articulation, cor);
+            artiucladosDFS(u, adj, discovery, low, parent, articulation, cor, tempo);
         }
     }
 
@@ -314,12 +313,43 @@ vector<int> articulados(vector<vector<pair<int, pair<int, int>>>>& adj, int qtdV
     return pontosDeArticulacao;
 }
 
-int pontes(vector<vector<pair<int, pair<int, int>>>>& listaAdj){
-    int qtdPontes = 0;
-    for(auto& vertice : listaAdj){
-        int qntRelacoes= vertice.size();
-        if(qntRelacoes == 1) qtdPontes++;
+void dfsPontes(int vertice, int pai, vector<vector<pair<int, pair<int, int>>>>& listaAdj, vector<int>& visitado, vector<int>& menorTempo, vector<int>& tempoEntrada, int& tempo, int& qtdPontes) {
+    visitado[vertice] = true;
+    menorTempo[vertice] = tempoEntrada[vertice] = tempo++;
+    
+    for (auto& elemento : listaAdj[vertice]) {
+        int vizinho = elemento.second.first;
+        if (vizinho == pai) continue; 
+        
+        if (!visitado[vizinho]) {
+            dfsPontes(vizinho, vertice, listaAdj, visitado, menorTempo, tempoEntrada, tempo, qtdPontes);
+            
+            
+            if (menorTempo[vizinho] > tempoEntrada[vertice]) {
+                qtdPontes++; 
+            }
+            
+            menorTempo[vertice] = min(menorTempo[vertice], menorTempo[vizinho]);
+        } else {
+            menorTempo[vertice] = min(menorTempo[vertice], tempoEntrada[vizinho]);
+        }
     }
+}
+
+int pontes(vector<vector<pair<int, pair<int, int>>>>& listaAdj, int qtdVertices) {
+    vector<int> visitado(qtdVertices, false);
+    vector<int> menorTempo(qtdVertices, -1);
+    vector<int> tempoEntrada(qtdVertices, -1);
+    int tempo = 0;
+    int qtdPontes = 0;
+
+    // Executa a DFS a partir de todos os vértices para garantir que todos os componentes sejam visitados
+    for (int i = 0; i < qtdVertices; ++i) {
+        if (!visitado[i]) {
+            dfsPontes(i, -1, listaAdj, visitado, menorTempo, tempoEntrada, tempo, qtdPontes);
+        }
+    }
+
     return qtdPontes;
 }
 
@@ -713,7 +743,7 @@ int main(){
                 //8 -Calcular quantas arestas ponte possui um grafo não-orientado.  
                 if (tipoGrafo != "direcionado")
                 {
-                    qtdPontes = pontes(lista_adj);  
+                    qtdPontes = pontes(lista_adj, qtdVertices);  
                     cout << qtdPontes << endl;
                 }else cout << -1 << endl;   
 
